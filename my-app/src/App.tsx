@@ -1,12 +1,24 @@
-//Example code 
+import { Routes, Route, Link } from "react-router-dom";
+import Home from "./pages/Home";
+import Appointments from "./pages/Appointments";
+import Documents from "./pages/Documents";
+import Gencare from "./pages/GeneralCare";
+import Notfound from "./pages/NotFound";
 
-import { Button } from "./components/Button";
-
+// Loads the page needed 
+//Uses JSX
 export default function App() {
-  return (
+  return(
     <div>
-      <h1>My App</h1>
-      <Button label="Say hi" onClick={() => alert("Hi!")} />
+      {/*Shows only the matching page*/}
+      {/*Looks at the URL and renders only the matching page*/}
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/appointments" element={<Appointments />} />
+        <Route path="/general" element={<Gencare />} />
+        <Route path="/documents" element={<Documents />} />
+        <Route path="*" element={<Notfound />} />
+      </Routes>
     </div>
   );
 }
