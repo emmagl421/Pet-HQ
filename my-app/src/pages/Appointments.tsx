@@ -1,6 +1,5 @@
-import { useNavigate } from "react-router-dom";
-import type { FormEvent } from "react";
 import { useState } from "react";
+import type { SubmitEvent } from "react";
 import Sidebar from "../components/Sidebar";
 import "./pages.css";
 
@@ -36,7 +35,7 @@ function dayOf(date: string) {
 }
 
 function weekdayTime(date: string, time: string) {
-    const d= new date(`${date}T${time}`);
+    const d = new Date(`${date}T${time}`);
     const weekday = d.toLocaleDateString("en-US", {weekday: "long" });
     const clock = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
     return `${weekday} at ${clock}`;
@@ -61,7 +60,7 @@ export default function Appointments() {
     const [notes, setNotes] = useState("");
 
     //Adds an appointment 
-    function addAppointment(event: FormEvent) {
+    function addAppointment(event: SubmitEvent<HTMLFormElement>) {
         event.preventDefault();
 
         const newAppointment: Appointment = { id: Date.now(), title, date, time, place, notes };
