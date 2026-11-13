@@ -1,44 +1,41 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { SubmitEvent } from "react";
 import Sidebar from "../components/Sidebar";
+import { supabase } from "../lib/supabase";
 import "./pages.css";
 
 //An appointment shape 
 type Appointment = {
     id: number;
     title: string;
-    date: string;
-    time: string;
-    place: string;
-    notes: string;
+    starts_at: string,
+    place: string | null;
+    notes: string | null;
+    outcome: string | null;
 };
 
-//Starting data (change later)
-const startingAppointments: Appointment[] = [
-    {id: 1, title: "Annual checkup", date: "2026-11-12", time: "15:30", place:"Blue Ridge Animal Clinic", notes: "No food after midnight" },
-    { id: 2, title: "Dental cleaning", date: "2026-12-03", time: "09:00", place: "Blue Ridge Animal Clinic", notes: "No food after midnight" }
-];
-
-const pastVisits = [
-  { id: 1, title: "Rabies booster", date: "Nov 8, 2026", place: "Blue Ridge Animal Clinic", outcome: "Certificate uploaded to Documents" },
-  { id: 2, title: "Microchip scan", date: "Oct 28, 2026", place: "Blue Ridge Animal Clinic", outcome: "Chip registered" },
-  { id: 3, title: "Grooming", date: "Sep 20, 2026", place: "Whiskers & Wags", outcome: "Nails trimmed" },
-];
+//List of columns we ask from supabase 
+const COLUMNS = "id, title, starts_at, place, notes, outcome";
 
 //Formatters for the date 
-function monthOf(date: string) {
-    return new Date(date + "T00:00").toLocaleDateString("en-US", { month: "short"});
+//Iso is the name of the standard date format for databases 
+function monthOf(iso: string) {
+    return new Date(iso).toLocaleDateString("en-US", { month: "short"});
 }
 
-function dayOf(date: string) {
-    return new Date(date + "T00:00").getDate();
+function dayOf(iso: string) {
+    return new Date(iso).getDate();
 }
 
-function weekdayTime(date: string, time: string) {
-    const d = new Date(`${date}T${time}`);
+function weekdayTime(iso: string) {
+    const d = new Date(iso);
     const weekday = d.toLocaleDateString("en-US", {weekday: "long" });
     const clock = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
     return `${weekday} at ${clock}`;
+}
+
+function shortDate(iso: string) {
+    return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric"});
 }
 
 
@@ -50,7 +47,10 @@ export default function Appointments() {
         appointments = current state value 
         setAppointments = modifer function that updates state and triggers rerender
     */}
-    const [appointments, setAppointments] = useState<Appointment[]>(startingAppointments);
+    const [appointments, setAppointments] = useState<Appointment[]>([]);
+    const [petId, setPetId] = useState<number | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
     //One state per form field 
     const [title, setTitle] = useState("");
@@ -58,31 +58,108 @@ export default function Appointments() {
     const [time, setTime] = useState("");
     const [place , setPlace] = useState("");
     const [notes, setNotes] = useState("");
+    const [saving, setSaving] = useState(false);
+
+    useEffect(() => {
+        //Load data from supabase
+        async function load() {
+            //Gets the pets id
+            const petResult = await supabase.from("pets").select("id").limit(1).maybeSingle();
+
+            //Get the appointments
+            const apptResult = await supabase
+                .from("appointments")
+                .select(COLUMNS)
+                .order("starts_at", { ascending: true });
+
+            //If there is an error tell the user and print to the console 
+            if (petResult.error || apptResult.error) {
+                setError("Couldn't load your appointments. Try refreshing the page.");
+                console.error(petResult.error || apptResult.error);
+            }
+            else {
+                //If there is data then get it else stop 
+                setPetId(petResult.data?.id ?? null);
+                setAppointments(apptResult.data as Appointment[]);
+            }
+            setLoading(false);
+        }
+        load();
+    }, []);
+
+    //Sorts the list by spliting into 2 and comparing it to right now 
+    const now = new Date();
+    const upcoming = appointments.filter((a) => new Date(a.starts_at) >= now);
+    const past = appointments.filter((a) => new Date(a.starts_at) > now).reverse();
 
     //Adds an appointment 
-    function addAppointment(event: SubmitEvent<HTMLFormElement>) {
+    async function addAppointment(event: SubmitEvent<HTMLFormElement>) {
+        //Prevent defaut refresh 
         event.preventDefault();
 
-        const newAppointment: Appointment = { id: Date.now(), title, date, time, place, notes };
+        //Make sure we have the pet id and send error if we don't 
+        if (petId === null) {
+            setError("Add a pet first, then add appointments.");
+            return;
+        }
+        
+        //Indicate that we are saving and reset error
+        setSaving(true);
+        setError("");
 
-        //Add it to the appointments and the sort by soonest 
-        const updated = [...appointments, newAppointment].sort((a, b) => 
-            `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`)
-        );
-        //Trigger rerender
-        setAppointments(updated);
+        //Add the date 
+        const startsAt = new Date(`${date}T${time}`).toISOString();
 
-        //Clear the form 
-        setTitle("");
-        setDate("");
-        setTime("");
-        setPlace("");
-        setNotes("");
+        //Try and save the appointment by sending it to supabase
+        const { data, error } = await supabase
+            .from("appointments")
+            .insert({
+                pet_id: petId,
+                title,
+                starts_at: startsAt,
+                place,
+                notes: notes || null
+            })
+            .select(COLUMNS)
+            .single();
+
+            //Check for errors
+            if (error) {
+                setError("Couldn't save appointment. Please try again.");
+                console.error(error);
+            }
+            else { 
+                //Add the appointment to the appointments array and resort 
+                const updated = [...appointments, data as Appointment].sort((a, b) => 
+                    a.starts_at.localeCompare(b.starts_at)
+                );
+                setAppointments(updated);
+
+                //Reset the fields to empty 
+                setTitle("");
+                setDate("");
+                setTime("");
+                setPlace("");
+                setNotes("");
+            }
+            setSaving(false);
     }
 
     //Cancel an appointment
-    function cancelAppointment(id: number) {
-        setAppointments(appointments.filter((a) => a.id !== id));
+    async function cancelAppointment(id: number) {
+        //Tell supabase to delete the appointment with given id
+        const { error } = await supabase.from("appointments").delete().eq("id", id);
+
+        //Check for errors 
+        if (error) {
+            setError("Couldn't cancel appointment. Please try again.");
+            console.error(error);
+        }
+        else {
+            //Remove the appointment from the array
+            setAppointments(appointments.filter((a) => a.id !== id));
+        }
+        
     }
     
     return (
@@ -95,29 +172,33 @@ export default function Appointments() {
                     <h1>Appointments</h1>
                     <p className="page-subtitle">Vet visits, grooming and anything else on Mochi's calendar.</p>
                 </header>
+
+                {error && <p className="form-error mb-3" role="alert">{error}</p>}
         
                 <div className="row g-4">
                     {/* Upcoming list */}
                     <section className="col-12 col-xl-7 content-section">
                     <h2>Upcoming</h2>
         
-                    {appointments.length === 0 ? (
+                    {loading ? (
+                        <p className="empty-note">Loading…</p>
+                    ) : upcoming.length === 0 ? (
                         <p className="empty-note">Nothing booked. Add an appointment to see it here.</p>
                     ) : (
                         <ul className="appt-list">
-                        {appointments.map((appt) => (
+                        {upcoming.map((appt) => (
                             <li key={appt.id} className="appt-item">
                             <div className="date-tile" aria-hidden="true">
-                                <span className="date-tile-month">{monthOf(appt.date)}</span>
-                                <span className="date-tile-day">{dayOf(appt.date)}</span>
+                                <span className="date-tile-month">{monthOf(appt.starts_at)}</span>
+                                <span className="date-tile-day">{dayOf(appt.starts_at)}</span>
                             </div>
         
                             <div className="appt-body">
                                 <h3 className="appt-title">{appt.title}</h3>
                                 <p className="appt-when">
-                                <time dateTime={`${appt.date}T${appt.time}`}>{weekdayTime(appt.date, appt.time)}</time>
+                                <time dateTime={appt.starts_at}>{weekdayTime(appt.starts_at)}</time>
                                 </p>
-                                <p className="appt-place">{appt.place}</p>
+                                {appt.place && <p className="appt-place">{appt.place}</p>}
                                 {appt.notes && <p className="appt-notes">{appt.notes}</p>}
                             </div>
         
@@ -161,28 +242,34 @@ export default function Appointments() {
                             <textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Anything to bring or remember" />
                         </label>
         
-                        <button type="submit" className="btn-pixel">Add appointment</button>
+                        <button type="submit" className="btn-pixel" disabled={saving}>
+                            {saving ? "Saving…" : "Add appointment"}
+                        </button>
                         </form>
                     </div>
                     </section>
                 </div>
         
                 {/* Past visits */}
-                <section className="content-section">
-                    <h2>Past visits</h2>
+                {!loading && past.length === 0 ? (
+                    <p className="empty-note">No past visits yet.</p>
+                ) : (
                     <ul className="recent-list">
-                    {pastVisits.map((visit) => (
+                        {past.map((visit) => (
                         <li key={visit.id}>
-                        <span className="file-tag">Visit</span>
-                        <span className="recent-text">
+                            <span className="file-tag">Visit</span>
+                            <span className="recent-text">
                             {visit.title}
-                            <span className="recent-sub">{visit.place}. {visit.outcome}.</span>
-                        </span>
-                        <time className="recent-time">{visit.date}</time>
+                            <span className="recent-sub">
+                                {visit.place}
+                                {visit.outcome && `. ${visit.outcome}.`}
+                            </span>
+                            </span>
+                            <time className="recent-time" dateTime={visit.starts_at}>{shortDate(visit.starts_at)}</time>
                         </li>
-                    ))}
+                        ))}
                     </ul>
-                </section>
+                    )}
         
                 <footer className="page-footer">
                     <p>&copy; 2026 Pet Tracker</p>

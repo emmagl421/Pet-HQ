@@ -17,18 +17,10 @@ type PetDocument = {
 
 const categories: Category[] = ["Medical", "Insurance", "ID & ownership"];
 
-//Starting data 
-const startingDocuments: PetDocument[] = [
-  { id: 1, name: "Rabies vaccine certificate", fileType: "PDF", category: "Medical", added: "Nov 8, 2026" },
-  { id: 2, name: "Microchip registration", fileType: "JPG", category: "ID & ownership", added: "Oct 28, 2026" },
-  { id: 3, name: "Pet insurance policy", fileType: "PDF", category: "Insurance", added: "Oct 15, 2026" },
-  { id: 4, name: "Adoption papers", fileType: "PDF", category: "ID & ownership", added: "Sep 3, 2026" },
-  { id: 5, name: "Bloodwork results", fileType: "PDF", category: "Medical", added: "Aug 19, 2026" },
-];
 
 export default function Documents() {
     //Creates an array of documents (documents) and uses state to redraw the page apon a change 
-    const [documents, setDocuments] = useState<PetDocument[]>(startingDocuments);
+    const [documents, setDocuments] = useState<PetDocument[]>(startingDo);
     const [filter, setFilter] = useState<Category | "All">("All");
     const [uploadCategory, setUploadCategory] = useState<Category>("Medical");
 

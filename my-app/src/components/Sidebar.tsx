@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+import { supabase } from "../lib/supabase";
 
 {/* 
     Sidebar used by everypage 
@@ -61,6 +62,11 @@ export default function Sidebar() {
                 <li className="nav-item"><NavLink to="/appointments" className="nav-link">Appointments</NavLink></li>
             </ul>
             </nav>
+
+            <button type="button" className="btn-quiet sidebar-signout" onClick={() => supabase.auth.signOut()}>
+                Sign out
+            </button>
+
         </div>
         </aside>
     );
