@@ -7,6 +7,7 @@ import Home from "./pages/Home";
 import Appointments from "./pages/Appointments";
 import Documents from "./pages/Documents";
 import Gencare from "./pages/GeneralCare";
+import CreateAvatar from "./pages/CreateAvatar";
 import Notfound from "./pages/NotFound";
 
 // Loads the page needed 
@@ -52,6 +53,7 @@ export default function App() {
         <Route path="/appointments" element={<Appointments />} />
         <Route path="/general" element={<Gencare />} />
         <Route path="/documents" element={<Documents />} />
+        <Route path="/avatar" element={<CreateAvatar />} />
         <Route path="*" element={<Notfound />} />
       </Routes>
     </div>

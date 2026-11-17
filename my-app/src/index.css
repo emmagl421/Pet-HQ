@@ -104,10 +104,11 @@ body {
   height: 92px;
   display: grid;
   place-items: center;
+  place-content: center;   /* add this */
   background: var(--sidebar-hover);
   border: 3px solid var(--sidebar-active);
   border-radius: 4px;
-  box-shadow: 4px 4px 0 #1c0f2d; /* chunky pixel-style shadow */
+  box-shadow: 4px 4px 0 #1c0f2d;
 }
 
 .pet-sprite {
@@ -361,4 +362,30 @@ body {
 
 .page-footer p {
   margin: 0;
+}
+
+.avatar-option-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.swatch-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.swatch {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid #d6d0c8;
+  cursor: pointer;
+}
+
+.swatch.selected {
+  outline: 3px solid #333;
+  outline-offset: 2px;
 }

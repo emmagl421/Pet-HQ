@@ -49,6 +49,7 @@ export default function Appointments() {
     */}
     const [appointments, setAppointments] = useState<Appointment[]>([]);
     const [petId, setPetId] = useState<number | null>(null);
+    const [petName, setPetName] = useState("");
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
@@ -64,7 +65,7 @@ export default function Appointments() {
         //Load data from supabase
         async function load() {
             //Gets the pets id
-            const petResult = await supabase.from("pets").select("id").limit(1).maybeSingle();
+            const petResult = await supabase.from("pets").select("id, name").limit(1).maybeSingle();
 
             //Get the appointments
             const apptResult = await supabase
@@ -80,6 +81,7 @@ export default function Appointments() {
             else {
                 //If there is data then get it else stop 
                 setPetId(petResult.data?.id ?? null);
+                setPetName(petResult.data?.name ?? "");
                 setAppointments(apptResult.data as Appointment[]);
             }
             setLoading(false);
@@ -170,8 +172,10 @@ export default function Appointments() {
                 <main className="col-12 col-md-9 col-lg-10 main-content">
                 <header className="page-header">
                     <h1>Appointments</h1>
-                    <p className="page-subtitle">Vet visits, grooming and anything else on Mochi's calendar.</p>
-                </header>
+                        <p className="page-subtitle">
+                            Vet visits, grooming and anything else on {petName ? `${petName}'s` : "your pet's"} calendar.
+                        </p>               
+                    </header>
 
                 {error && <p className="form-error mb-3" role="alert">{error}</p>}
         
