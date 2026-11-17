@@ -40,6 +40,7 @@ export default function Sidebar() {
             <div className="pet-info">
                 <p className="pet-name">{petName || "Your pet"}</p>
                 <p className="pet-status">Fed 2 hrs ago</p>
+                <NavLink to="/pet" className="edit-avatar-btn">Edit pet info</NavLink>
             </div>
             </div>
     

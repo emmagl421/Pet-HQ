@@ -389,3 +389,196 @@ body {
   outline: 3px solid #333;
   outline-offset: 2px;
 }
+
+/* Three columns: menu | cat | empty space the same width as the menu.
+   The empty column on the right keeps the cat truly centered. */
+.avatar-editor {
+  display: grid;
+  grid-template-columns: 220px 1fr 220px;
+  gap: 24px;
+  align-items: start;
+}
+
+/* Stack the cat and the arrows, centered */
+.avatar-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+/* The box around the whole menu */
+.avatar-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border: 3px solid #1c0f2d;   /* dark purple */
+  border-radius: 8px;
+}
+
+/* Each option: just text by default */
+.avatar-menu-item {
+  padding: 8px 12px;
+  text-align: left;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.avatar-menu-item:hover {
+  background: #F5C842;   /* yellow */
+  color: #1c0f2d;        /* dark purple text so it's readable on the yellow */
+}
+
+/* Same highlight for keyboard users tabbing through the menu */
+.avatar-menu-item:focus-visible {
+  outline: 2px solid #1c0f2d;
+  outline-offset: 2px;
+}
+
+/* The selected option: bold text with a small marker, but no box */
+.avatar-menu-item.active {
+  font-weight: 700;
+}
+
+.avatar-menu-item.active::before {
+  content: "▸ ";
+}
+
+.option-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  max-width: 280px; /* keeps the arrows close to the name */
+}
+
+.stepper-arrow {
+  width: 40px;
+  height: 40px;
+  font-size: 1.5rem;
+  line-height: 1;
+  border: none;
+  border-radius: 8px;
+  background: var(--sidebar-active);
+  color: white;
+  cursor: pointer;
+}
+
+.stepper-name {
+  flex: 1;
+  text-align: center;
+  font-weight: 600;
+}
+
+.stepper-count {
+  margin: 0;
+  text-align: center;
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+/* Phones and small screens: stack the panel above the cat */
+@media (max-width: 991px) {
+  .avatar-editor {
+    grid-template-columns: 1fr;
+  }
+}
+
+.edit-avatar-btn {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  border: 2px solid #1c0f2d;
+  border-radius: 6px;
+  background: #F5C842;
+  color: #1c0f2d;
+  text-decoration: none;
+}
+
+.edit-avatar-btn:hover {
+  filter: brightness(1.08);
+}
+
+
+.avatar-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.save-avatar-btn {
+  padding: 10px 20px;
+  font-weight: 700;
+  border: 3px solid #1c0f2d;
+  border-radius: 8px;
+  background: #F5C842;
+  color: #1c0f2d;
+  cursor: pointer;
+}
+
+.save-avatar-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.avatar-message {
+  margin: 0;
+  color: #b3261e;
+}
+
+/* Make the document buttons look like your old links */
+.link-button {
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  text-align: left;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.home-error {
+  color: #b3261e;
+}
+
+/* Avatar on the left, form on the right */
+.edit-pet {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 32px;
+  align-items: start;
+  max-width: 900px;
+}
+
+.edit-pet-avatar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.edit-pet-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.form-message {
+  margin: 16px 0 0;
+  color: #b3261e;
+}
+
+/* Stack on small screens */
+@media (max-width: 767px) {
+  .edit-pet {
+    grid-template-columns: 1fr;
+  }
+}
